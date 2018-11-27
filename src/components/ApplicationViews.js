@@ -1,4 +1,4 @@
-import { Route } from 'react-router-dom'
+import { Route, Redirect } from 'react-router-dom'
 import React, { Component } from "react"
 import AnimalManager from "../modules/AnimalManager"
 import EmployeeManager from "../modules/EmployeeManager"
@@ -8,6 +8,8 @@ import AnimalList from './animals/AnimalList'
 import LocationList from './locations/LocationList'
 import EmployeeList from './employee/EmployeeList'
 import OwnerList from './owners/OwnerList'
+import Login from './authentication/Login'
+
 
 export default class ApplicationViews extends Component {
 
@@ -18,6 +20,9 @@ export default class ApplicationViews extends Component {
     owners: [],
     petOwners: []
   }
+
+  // Check if credentials are in local storage
+  isAuthenticated = () => sessionStorage.getItem("credentials") !== null
 
   componentDidMount() {
     const newState = {}
@@ -91,24 +96,40 @@ export default class ApplicationViews extends Component {
     return (
       <React.Fragment>
         <Route exact path="/" render={(props) => {
-          return <LocationList locations={this.state.locations} />
+          if (this.isAuthenticated()) {
+            return <LocationList locations={this.state.locations} />
+          } else {
+            return <Redirect to="/login" />
+          }
         }} />
+        <Route path="/login" component={Login} />
         <Route path="/animals" render={(props) => {
-          return <AnimalList
-            deleteAnimal={this.deleteAnimal}
-            animals={this.state.animals}
-            owners={this.state.owners}
-            petOwners={this.state.petOwners} />
+          if (this.isAuthenticated()) {
+            return <AnimalList
+              deleteAnimal={this.deleteAnimal}
+              animals={this.state.animals}
+              owners={this.state.owners}
+              petOwners={this.state.petOwners} />
+          } else {
+            return <Redirect to="/login" />
+          }
         }} />
-        <Route path="/employees" render={(props) => {
-          return <EmployeeList
-            employees={this.state.employees}
-            deleteEmployee={this.deleteEmployee} />
+        <Route exact path="/employees" render={props => {
+          if (this.isAuthenticated()) {
+            return <EmployeeList deleteEmployee={this.deleteEmployee}
+              employees={this.state.employees} />
+          } else {
+            return <Redirect to="/login" />
+          }
         }} />
         <Route path="/owners" render={(props) => {
-          return <OwnerList
-            owners={this.state.owners}
-            deleteOwner={this.deleteOwner} />
+          if (this.isAuthenticated()) {
+            return <OwnerList
+              owners={this.state.owners}
+              deleteOwner={this.deleteOwner} />
+          } else {
+            return <Redirect to="/login" />
+          }
         }} />
       </React.Fragment>
     )
